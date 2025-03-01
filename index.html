@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+0<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -88,19 +88,19 @@
       let icon = "";
 
       if (hour < 6) {
-        message = "The sun is below the horizon. It's night.";
+        message = "The sun is below the horizon. It's night. Probably okay to drink.";
         icon = '<i class="fas fa-moon sun-icon"></i>';
       } else if (hour < 11) {
-        message = "The sun is rising, but it's not over the yardarm yet.";
+        message = "The sun is rising, but it's not over the yardarm yet :(";
         icon = '<i class="fas fa-sun sun-icon"></i>';
       } else if (hour < 13) {
         message = "The sun is near its peak. It's over the yardarm!";
         icon = '<i class="fas fa-sun sun-icon"></i>';
       } else if (hour < 18) {
-        message = "The sun is descending in the sky. It's still over the yardarm.";
+        message = "The sun is descending in the sky. It's still over the yardarm, so select a pub.";
         icon = '<i class="fas fa-cloud-sun sun-icon"></i>';
       } else {
-        message = "The sun has set. Evening has begun.";
+        message = "The sun has set. Evening has begun. Presumably you are in a pub.";
         icon = '<i class="fas fa-moon sun-icon"></i>';
       }
 
