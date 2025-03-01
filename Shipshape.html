@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shipshape</title>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBp4LaK9zwQeXS2jCtL8v2KwZ37WN1E1Tk&libraries=places&callback=initMap" async defer></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #333;
+      color: #fff;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+    }
+
+    header img {
+      height: 50px;
+      margin-right: 10px;
+    }
+
+    header h1 {
+      margin: 0;
+    }
+
+    #result {
+      text-align: center;
+      font-size: 36px; /* Larger font for main result */
+      font-weight: bold;
+      color: #333;
+      margin-top: 20px;
+      padding: 20px;
+    }
+
+    #sunDetails {
+      text-align: center;
+      font-size: 18px;
+      margin: 10px;
+    }
+
+    .sun-icon {
+      font-size: 48px;
+      margin-top: 10px;
+    }
+
+    #map {
+      height: 400px;
+      width: 100%;
+    }
+
+    #pubs {
+      margin-top: 20px;
+      padding: 0;
+      list-style: none;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="shlogo.png" alt="Shipshape">
+    <h1></h1>
+  </header>
+  <div id="result">Detecting your location...</div>
+  <div id="sunDetails"></div>
+  <div id="map"></div>
+  <ul id="pubs"></ul>
+
+  <script>
+    let map;
+
+    function initMap() {
+      map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: 0, lng: 0 }, // Default center
+        zoom: 15,
+      });
+    }
+
+    function calculateSunPosition(hour) {
+      let message = "";
+      let icon = "";
+
+      if (hour < 6) {
+        message = "The sun is below the horizon. It's night.";
+        icon = '<i class="fas fa-moon sun-icon"></i>';
+      } else if (hour < 11) {
+        message = "The sun is rising, but it's not over the yardarm yet.";
+        icon = '<i class="fas fa-sun sun-icon"></i>';
+      } else if (hour < 13) {
+        message = "The sun is near its peak. It's over the yardarm!";
+        icon = '<i class="fas fa-sun sun-icon"></i>';
+      } else if (hour < 18) {
+        message = "The sun is descending in the sky. It's still over the yardarm.";
+        icon = '<i class="fas fa-cloud-sun sun-icon"></i>';
+      } else {
+        message = "The sun has set. Evening has begun.";
+        icon = '<i class="fas fa-moon sun-icon"></i>';
+      }
+
+      document.getElementById("sunDetails").innerHTML = `${icon}<p>${message}</p>`;
+    }
+
+    function fetchNearestPub(latitude, longitude) {
+      const location = new google.maps.LatLng(latitude, longitude);
+      const request = {
+        location: location,
+        radius: 2000, // Search within 2km radius
+        type: ['bar'], // Search for bars/pubs
+      };
+
+      const service = new google.maps.places.PlacesService(map);
+      service.nearbySearch(request, (results, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
+          const nearestPub = results[0]; // Closest pub
+          const pubName = nearestPub.name;
+          const pubAddress = nearestPub.vicinity;
+
+          document.getElementById("result").textContent = `Yes, it's past the yardarm!`;
+          document.getElementById("sunDetails").innerHTML += `<p>The nearest pub is ${pubName}, located at ${pubAddress}.</p>`;
+
+          // Add marker for the nearest pub
+          new google.maps.Marker({
+            position: nearestPub.geometry.location,
+            map,
+            title: pubName,
+          });
+        } else {
+          document.getElementById("result").textContent = `Yes, it's past the yardarm!`;
+          document.getElementById("sunDetails").innerHTML += `<p>However, no pubs were found nearby.</p>`;
+        }
+      });
+    }
+
+    function success(position) {
+      const latitude = position.coords.latitude;
+      const longitude = position.coords.longitude;
+
+      map.setCenter({ lat: latitude, lng: longitude });
+
+      const now = new Date();
+      const hour = now.getHours();
+      const isYardarm = hour >= 11;
+
+      if (isYardarm) {
+        document.getElementById("result").textContent = `Yes, it's past the yardarm!`;
+        fetchNearestPub(latitude, longitude);
+      } else {
+        document.getElementById("result").textContent = `No, it's not past the yardarm yet.`;
+      }
+
+      calculateSunPosition(hour);
+    }
+
+    function error() {
+      document.getElementById("result").textContent = "Unable to retrieve your location.";
+      document.getElementById("sunDetails").textContent = "Sun position could not be determined.";
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(success, error);
+    } else {
+      document.getElementById("result").textContent = "Geolocation is not supported by your browser.";
+      document.getElementById("sunDetails").textContent = "Sun position could not be determined.";
+    }
+  </script>
+</body>
+</html>
