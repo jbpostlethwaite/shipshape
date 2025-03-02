@@ -97,7 +97,7 @@
       const altitude = sunPosition.altitude * (180 / Math.PI); // Convert radians to degrees
       const altitudeRounded = altitude.toFixed(2); // Round to 2 decimal places
 
-      if (altitude > 30) { // Updated threshold: 50 degrees
+      if (altitude > 25) { 
         document.getElementById("map").style.display = "block";
         document.getElementById("result").textContent = `Yes, the sun is over the yardarm!`;
         fetchNearestPub(latitude, longitude);
@@ -120,10 +120,10 @@
       if (altitude <= 0) {
         message = "The sun is below the horizon. It's night. Probably okay to drink.";
         icon = '<i class="fas fa-moon sun-icon"></i>';
-      } else if (altitude < 30) {
+      } else if (altitude < 25) {
         message = "The sun is rising, but it's not over the yardarm yet :(";
         icon = '<i class="fas fa-sun sun-icon"></i>';
-      } else if (altitude >= 30) {
+      } else if (altitude >= 25) {
         message = "The sun is over the yardarm!";
         icon = '<i class="fas fa-sun sun-icon"></i>';
       }
