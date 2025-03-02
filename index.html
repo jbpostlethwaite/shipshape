@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Shipshape</title>
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBp4LaK9zwQeXS2jCtL8v2KwZ37WN1E1Tk&libraries=places&callback=initMap" async defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/suncalc/1.9.0/suncalc.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
     body {
@@ -51,6 +52,7 @@
     }
 
     #map {
+      display: none; /* Hide the map by default */
       height: 400px;
       width: 100%;
     }
@@ -83,25 +85,47 @@
       });
     }
 
-    function calculateSunPosition(hour) {
+    function success(position) {
+      const latitude = position.coords.latitude;
+      const longitude = position.coords.longitude;
+
+      map.setCenter({ lat: latitude, lng: longitude });
+
+      const now = new Date();
+      const sunPosition = SunCalc.getPosition(now, latitude, longitude);
+
+      const altitude = sunPosition.altitude * (180 / Math.PI); // Convert radians to degrees
+      const altitudeRounded = altitude.toFixed(2); // Round to 2 decimal places
+
+      if (altitude > 50) { // Updated threshold: 50 degrees
+        document.getElementById("map").style.display = "block";
+        document.getElementById("result").textContent = `Yes, the sun is over the yardarm!`;
+        fetchNearestPub(latitude, longitude);
+      } else {
+        document.getElementById("map").style.display = "none";
+        document.getElementById("result").textContent = `No, the sun is not over the yardarm yet.`;
+      }
+
+      calculateSunPosition(altitude);
+
+      // Display the degrees on a separate line
+      const degreesParagraph = `<p>Sun position: ${altitudeRounded}°</p>`;
+      document.getElementById("sunDetails").innerHTML += degreesParagraph;
+    }
+
+    function calculateSunPosition(altitude) {
       let message = "";
       let icon = "";
 
-      if (hour < 6) {
+      if (altitude <= 0) {
         message = "The sun is below the horizon. It's night. Probably okay to drink.";
         icon = '<i class="fas fa-moon sun-icon"></i>';
-      } else if (hour < 11) {
+      } else if (altitude < 50) {
         message = "The sun is rising, but it's not over the yardarm yet :(";
         icon = '<i class="fas fa-sun sun-icon"></i>';
-      } else if (hour < 13) {
-        message = "The sun is near its peak. It's over the yardarm!";
+      } else if (altitude >= 50) {
+        message = "The sun is over the yardarm!";
         icon = '<i class="fas fa-sun sun-icon"></i>';
-      } else if (hour < 18) {
-        message = "The sun is descending in the sky. It's still over the yardarm, so select a pub.";
-        icon = '<i class="fas fa-cloud-sun sun-icon"></i>';
-      } else {
-        message = "The sun has set. Evening has begun. Presumably you are in a pub.";
-        icon = '<i class="fas fa-moon sun-icon"></i>';
       }
 
       document.getElementById("sunDetails").innerHTML = `${icon}<p>${message}</p>`;
@@ -136,26 +160,6 @@
           document.getElementById("sunDetails").innerHTML += `<p>However, no pubs were found nearby.</p>`;
         }
       });
-    }
-
-    function success(position) {
-      const latitude = position.coords.latitude;
-      const longitude = position.coords.longitude;
-
-      map.setCenter({ lat: latitude, lng: longitude });
-
-      const now = new Date();
-      const hour = now.getHours();
-      const isYardarm = hour >= 11;
-
-      if (isYardarm) {
-        document.getElementById("result").textContent = `Yes, it's past the yardarm!`;
-        fetchNearestPub(latitude, longitude);
-      } else {
-        document.getElementById("result").textContent = `No, it's not past the yardarm yet.`;
-      }
-
-      calculateSunPosition(hour);
     }
 
     function error() {
